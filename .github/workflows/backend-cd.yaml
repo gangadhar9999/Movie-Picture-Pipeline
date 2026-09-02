@@ -19,6 +19,7 @@ jobs:
     defaults:
       run:
         working-directory: starter/backend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,6 +53,7 @@ jobs:
     defaults:
       run:
         working-directory: starter/backend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -83,6 +85,7 @@ jobs:
   build:
     needs: [lint, test]
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -92,6 +95,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Log in to Amazon ECR
@@ -99,14 +103,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-        run: docker build -t ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} ./starter/backend
+        run: |
+          docker build \
+            -t ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }} \
+            ./starter/backend
 
       - name: Push Docker image to ECR
-        run: docker push ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+        run: |
+          docker push \
+            ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -116,6 +126,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Set up kubectl
@@ -127,7 +138,10 @@ jobs:
           sudo mv kustomize /usr/local/bin/
 
       - name: Configure Kubernetes context
-        run: aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ secrets.EKS_CLUSTER_NAME }} \
+            --region ${{ env.AWS_REGION }}
 
       - name: Deploy backend to Kubernetes
         working-directory: starter/backend/k8s
