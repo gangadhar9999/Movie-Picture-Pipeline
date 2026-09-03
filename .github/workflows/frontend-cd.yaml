@@ -11,7 +11,7 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  REACT_APP_MOVIE_API_URL: http://localhost:5000
+  REACT_APP_MOVIE_API_URL: http://a1c35abcd0f154a779a445e29bc4834c-1876388664.us-east-1.elb.amazonaws.com
   ECR_REPOSITORY: movie-picture-frontend
 
 jobs:
@@ -20,6 +20,7 @@ jobs:
     defaults:
       run:
         working-directory: starter/frontend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -42,6 +43,7 @@ jobs:
     defaults:
       run:
         working-directory: starter/frontend
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -62,6 +64,7 @@ jobs:
   build:
     needs: [lint, test]
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -91,6 +94,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
